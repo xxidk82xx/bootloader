@@ -1,22 +1,20 @@
-SRC = $(shell find * -name '*.asm')
-BIN = $(patsubst %.asm, %.bin, $(SRC))
+SRC = src/boot.asm src/text.asm
+BIN = src/boot.bin src/text.bin
 BOOT = boot.bin
-BIN_DIR = build/
-SRC_DIR = src/
 AS = nasm
 
 .PHONY: all
 
-all: $(BOOT) $(clean)
+all: $(BIN) 
+	cat $(addprefix build/, $(BIN)) > build/$(BOOT)
+	truncate -s 16M build/$(BOOT)
 
 clean:
-	rm -rf $(BIN_DIR)
-	rm $(BOOT)
+	rm -rf build/
 	
-$(BOOT):$(BIN)
-	echo $(BIN)
-	cat $(BIN_DIR)src/FATBPB.bin $(BIN_DIR)src/loader.bin > boot.bin
+run: all
+	qemu-system-i386 -drive file=build/$(BOOT),format=raw,index=0,media=disk
 
 %.bin:%.asm
-	mkdir -p $(BIN_DIR)$(shell dirname $<)
-	$(AS) $< -o $(BIN_DIR)$@
+	mkdir -p build/$(shell dirname $<)
+	$(AS) $< -o build/$@
