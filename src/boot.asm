@@ -65,8 +65,7 @@ prInt:
 	mov ah, 0x0e
 	int 0x10
 	dec cx
-	cmp cx, 0
-	jg .print
+	jnz .print
 	ret
 
 debp:
@@ -84,8 +83,7 @@ print:
 	int 0x10
 	inc bp 
 	dec cx
-	cmp cx, 0
-	jg .loop
+	jnz .loop
     ret
 
 
