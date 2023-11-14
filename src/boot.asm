@@ -23,7 +23,7 @@ FSType:		db 'FAT16   '
 FAT_LOCATION equ 0x1000
 boot:
 [org 0x7c00]  
-mov [BOOT_DISK], dl
+mov [driveNum], dl
 xor eax, eax                          
 mov es, ax
 mov ds, ax
@@ -118,16 +118,6 @@ readDisk:
 	ret
 
 rootDir dw 0
-BOOT_DISK db 0
-
-DAP:
-DAPSize:	db 0x10
-DAPRsvd:	db 0x00
-DAPBlks:	dw 0x0001
-DAPOffs:	dw 0x0000
-DAPSegm:	dw 0x0000
-DAPSecL:	dd 0x00000000
-DAPSecH:	dd 0x00000000
 
 times 510-($-$$) db 0
 dw 0xaa55
