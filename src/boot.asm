@@ -1,33 +1,26 @@
 JMPBOOT:    jmp boot
 nop
-name:		db 'Bossman'
+name:		db 'Bossman '
 secSz:		dw 0x0200
 clusSz:		db 0x04
-rsvdSecCnt:	dw 0x0020
+rsvdSecCnt:	dw 0x0004
 numFats:	db 0x02
-rootEntCnt:	dw 0x0000
-totalSec16:	dw 0x0000
+rootEntCnt:	dw 0x0200
+totalSec16:	dw 0x0800
 media:		db 0xf8
-FATSz16:	dw 0x0000
-secPerTrk:	dw 0x0000
-numHeads:	dw 0x0000
+FATSz16:	dw 0x0020
+secPerTrk:	dw 0x0020
+numHeads:	dw 0x0002
 hiddenSec:	dd 0x00000000
-totalSec32:	dd 0x00200000
-;fat32 specific
-FATSz32:	dd 0x00001000
-extFlags:	dw 0x0000
-fsVer:		dw 0x0000
-rootClus:	dd 0x00000000
-fsInfo:		dw 0x0000
-BKBootSec:	dw 0x0006
-rsvd:		times 12 db 0x00
+totalSec32:	dd 0x00000000
+;fat12 specific
 driveNum:	db 0x80
 NTReserved:	db 0x00
 bootSig:	db 0x29
-volID:		dd 0x00000000
+volID:		dd 0x2905a69d
 volLab:		db 'NO NAME    '
-FSType:		db 'FAT32   '
-KERNEL_LOCATION equ 0x600
+FSType:		db 'FAT16   '
+FAT_LOCATION equ 0x1000
 boot:
 [org 0x7c00]  
 mov [BOOT_DISK], dl
@@ -37,53 +30,33 @@ mov ds, ax
 mov bp, 0x8000
 mov sp, bp
 
-mov bx, KERNEL_LOCATION
-mov al, 1
+mov ah, 0x41
+mov bx, 0x55aa
+mov dl, [BOOT_DISK]
+int 0x13
+jc fuck
+mov ax, cx
+call prInt
+hlt
+jmp $
+
+mov ax, [rsvdSecCnt]
+mov [DAPSecL], ax
+mov word [DAPOffs], 0x1000
+mov cx, 1
 call readDisk
-pusha
-mov bp, KERNEL_LOCATION + 2
-mov cx, [KERNEL_LOCATION]
+mov bp, 0x1000
+mov cx, 11
 call print
-popa
 
 jmp $
 
-readDisk:
-	mov ah, 0x02
-	mov ch, 0x00
-	mov cl, 0x02
-	mov dh, 0
-	mov dl, [driveNum]
-	int 0x13
-	jc .code
-.secRead:
-	pusha
-    mov bp, readT
-    mov cx, [readTL]
-	call print
-    popa
-	and eax, 0xff
-	call prInt
-	ret
-.code:
-	pusha
-    mov bp, errortext
-    mov cx, [errortextL]
-	call print
-    popa
-	mov ah, al
-	and eax, 0xff
-	call prInt
-	ret
+fuck:
+	call debp
+	hlt
+	jmp $
 
 
-readT db "read sectors, count = "
-readTL dw $-readT
-
-errortext db ' disk read code = '
-errortextL dw $-errortext 
-
-BOOT_DISK db 0
 
 prInt:
 	xor cx, cx
@@ -106,9 +79,11 @@ prInt:
 	ret
 
 debp:
+pusha
 	mov al, 'A'
 	mov ah, 0x0e
 	int 0x10
+popa
 	ret
 
 print:
@@ -121,6 +96,46 @@ print:
 	cmp cx, 0
 	jg .loop
     ret
+
+
+
+;cx sectors to read
+readDisk:
+	mov ah, 0x42
+	mov dh, [driveNum]
+	mov si, DAP
+	int 0x13
+	jnc .succ
+	push ax
+	mov ah, 0x0e
+	mov al, 'E'
+	int 0x10
+
+	pop ax
+	mov al, ah
+	and eax, 0xff
+	call prInt
+
+	xor ah, ah
+	mov dl, [driveNum]
+	int 0x13
+	jmp readDisk
+.succ:
+	dec cx
+	jnz readDisk
+	ret
+
+rootDir dw 0
+BOOT_DISK db 0
+
+DAP:
+DAPSize:	db 0x10
+DAPRsvd:	db 0x00
+DAPBlks:	dw 0x0001
+DAPOffs:	dw 0x0000
+DAPSegm:	dw 0x0000
+DAPSecL:	dd 0x00000000
+DAPSecH:	dd 0x00000000
 
 times 510-($-$$) db 0
 dw 0xaa55
