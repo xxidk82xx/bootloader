@@ -92,7 +92,7 @@ print:
 readDisk:
 	inc cl
 .loop:
-	mov ah, 0x0a
+	mov ah, 0x02
 	xor ch, ch
 	xor dh, dh
 	mov dl, 0x80
