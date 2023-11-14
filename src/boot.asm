@@ -20,7 +20,6 @@ bootSig:	db 0x29
 volID:		dd 0x2905a69d
 volLab:		db 'NO NAME    '
 FSType:		db 'FAT16   '
-FAT_LOCATION equ 0x1000
 boot:
 [org 0x7c00]  
 mov [driveNum], dl
@@ -93,7 +92,7 @@ print:
 readDisk:
 	inc cl
 .loop:
-	mov ah, 0x02
+	mov ah, 0x0a
 	xor ch, ch
 	xor dh, dh
 	mov dl, 0x80
