@@ -30,21 +30,12 @@ mov ds, ax
 mov bp, 0x8000
 mov sp, bp
 
-mov ah, 0x41
-mov bx, 0x55aa
-mov dl, [BOOT_DISK]
-int 0x13
-jc fuck
-mov ax, cx
-call prInt
-hlt
-jmp $
-
-mov ax, [rsvdSecCnt]
-mov [DAPSecL], ax
-mov word [DAPOffs], 0x1000
-mov cx, 1
+mov al, 1
+mov cl, [rsvdSecCnt]
+mov bx, 0x1000
 call readDisk
+
+
 mov bp, 0x1000
 mov cx, 11
 call print
@@ -99,13 +90,18 @@ print:
 
 
 
-;cx sectors to read
+;al sectors to read
+;cl start sector + 1
 readDisk:
-	mov ah, 0x42
-	mov dh, [driveNum]
-	mov si, DAP
+	inc cl
+.loop:
+	mov ah, 0x02
+	xor ch, ch
+	xor dh, dh
+	mov dl, 0x80
 	int 0x13
 	jnc .succ
+
 	push ax
 	mov ah, 0x0e
 	mov al, 'E'
@@ -119,10 +115,8 @@ readDisk:
 	xor ah, ah
 	mov dl, [driveNum]
 	int 0x13
-	jmp readDisk
+	jmp .loop
 .succ:
-	dec cx
-	jnz readDisk
 	ret
 
 rootDir dw 0
