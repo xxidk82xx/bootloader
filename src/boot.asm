@@ -29,15 +29,13 @@ mov ds, ax
 mov bp, 0x8000
 mov sp, bp
 
-mov ax, 63
-call toCHS
-call prInt
-call debp
-mov ax, bx
-call prInt
-call debp
-mov ax, cx
-call prInt
+mov ax, 0x04
+mov bx, 0x1000
+call readDisk
+
+mov bx, 0x1000
+mov cx, 11
+call print
 
 jmp $
 
@@ -77,12 +75,14 @@ pusha
 popa
 	ret
 
+;bx = text
+;cx = len
 print:
 	mov ah, 0x0e
 .loop:
-	mov al, [bp]
+	mov al, [bx]
 	int 0x10
-	inc bp 
+	inc bx 
 	dec cx
 	jnz .loop
     ret
@@ -112,24 +112,23 @@ toCHS:
 ;ax start sector
 ;es:bx position to read to
 readDisk:
+	push bx
 	call toCHS
 	mov ch, al
 	mov dh, bl
+	mov al, cl
+	pop bx
 .loop:
 	mov ah, 0x02
 	mov dl, 0x80
+	push ax
 	int 0x13
+	pop ax
 	jnc .succ
 
-	push ax
 	mov ah, 0x0e
 	mov al, 'E'
 	int 0x10
-
-	pop ax
-	mov al, ah
-	and eax, 0xff
-	call prInt
 
 	xor ah, ah
 	mov dl, [driveNum]
