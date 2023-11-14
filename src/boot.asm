@@ -29,15 +29,15 @@ mov ds, ax
 mov bp, 0x8000
 mov sp, bp
 
-mov al, 1
-mov cl, [rsvdSecCnt]
-mov bx, 0x1000
-call readDisk
-
-
-mov bp, 0x1000
-mov cx, 11
-call print
+mov ax, 63
+call toCHS
+call prInt
+call debp
+mov ax, bx
+call prInt
+call debp
+mov ax, cx
+call prInt
 
 jmp $
 
@@ -49,6 +49,7 @@ fuck:
 
 
 prInt:
+	pusha
 	xor cx, cx
 	mov esi, 10
 .loop:
@@ -65,11 +66,12 @@ prInt:
 	int 0x10
 	dec cx
 	jnz .print
+	popa
 	ret
 
 debp:
 pusha
-	mov al, 'A'
+	mov al, ':'
 	mov ah, 0x0e
 	int 0x10
 popa
@@ -85,16 +87,36 @@ print:
 	jnz .loop
     ret
 
+SPT: dW 63
+HPC: dW 16
+SPTXHPC: dw 1008
 
+;ax sector
+;to
+;ax cyl
+;bx head
+;cx sector
+toCHS:
+	push dx
+	xor dx, dx
+	div WORD [SPT] ;dx = sectors ax = cyl * hpc
+	inc dx
+	push dx
+	xor dx, dx
+	div word [HPC] ;ax = cyl dx = head
+	mov bx, dx
+	pop cx
+	pop dx
+	ret
 
-;al sectors to read
-;cl start sector + 1
+;ax start sector
+;es:bx position to read to
 readDisk:
-	inc cl
+	call toCHS
+	mov ch, al
+	mov dh, bl
 .loop:
 	mov ah, 0x02
-	xor ch, ch
-	xor dh, dh
 	mov dl, 0x80
 	int 0x13
 	jnc .succ
