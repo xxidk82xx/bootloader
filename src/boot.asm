@@ -84,18 +84,25 @@ cmpStr:
 
 ;eax = target name
 ;ebx = offset
+;ecx = endOffset
 ;->
 ;ax = dataCluster
+;cf set if nonexistant
 readDirEnt:
 .search:
 	mov cx, 11
 	call cmpStr
 	jc .found
 	add ebx, 0x20
-	call .search
+	cmp ebx, ecx 
+	jle .search
+.notFound:
+	stc
+	ret
 .found:
 	add ebx, 26
 	mov ax, [ebx]
+	ret
 
 bootName: db 'BOOT       '
 readBoot:
