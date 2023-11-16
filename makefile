@@ -1,5 +1,5 @@
 SRC = $(shell find * -name '*.asm')
-BIN = src/boot.bin src/table.bin
+BIN = src/boot.bin
 BOOT = boot.bin
 AS = nasm
 
@@ -7,7 +7,7 @@ AS = nasm
 
 all: $(BIN) 
 	cat $(addprefix build/, $(BIN)) > build/$(BOOT)
-	truncate -s 16M build/$(BOOT)
+	
 
 clean:
 	rm -rf build/

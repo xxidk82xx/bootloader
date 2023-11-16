@@ -29,13 +29,18 @@ mov ds, ax
 mov bp, 0x8000
 mov sp, bp
 
-mov ax, 0x04
+mov ax, [numFats]
+mul word [FATSz16]
+mov [rootDir], ax
+add ax, 4
 mov bx, 0x1000
 call readDisk
 
-mov bx, 0x1000
-mov cx, 11
-call print
+call getDataSec
+mov ax, [dataSec]
+call prInt
+
+call readBoot
 
 jmp $
 
@@ -44,6 +49,57 @@ fuck:
 	hlt
 	jmp $
 
+dataSec: dw 0
+getDataSec:
+	mov ax, [rootEntCnt]
+	mov bx, 32
+	mul bx
+	;add ax, [secSz]
+	;dec ax
+	div word [secSz]
+	add ax, [rootDir]
+	add ax, [rsvdSecCnt]
+	mov [dataSec], ax
+	ret
+
+
+bootName: db 'BOOT       '
+readBoot:
+	mov ax, bootName
+	mov bx, 0x1020
+.loop:
+	mov cl, [eax]
+	cmp cl, [bx]
+	jne .notBoot
+	inc ax
+	inc bx
+	cmp ax, bootName + 11
+	jl .loop
+.printName:
+	mov bx, 0x1020
+	mov cx, 11
+	call print
+.isDir:
+	mov bx, [0x102b]
+	xor eax, eax
+	mov ax, bx
+	cmp ax, 0x10
+	jne .notBoot
+.findBin:
+	mov ax, [0x103a]
+	sub ax, 2
+	xor bx, bx
+	mov bl , [clusSz]
+	mul bx
+	add ax, [dataSec]
+	call prInt
+	ret
+
+.notBoot:
+	mov ah, 0x0e
+	mov al, 'b'
+	int 0x10
+	jmp $
 
 
 prInt:
@@ -78,13 +134,15 @@ popa
 ;bx = text
 ;cx = len
 print:
+	push ax
 	mov ah, 0x0e
 .loop:
 	mov al, [bx]
 	int 0x10
-	inc bx 
+	inc bx
 	dec cx
 	jnz .loop
+	pop ax
     ret
 
 SPT: dW 63
