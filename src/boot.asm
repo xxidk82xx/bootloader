@@ -1,6 +1,6 @@
 JMPBOOT:    jmp boot
 nop
-name:		db 'Bossman '
+FSname:		db 'Bossman '
 secSz:		dw 0x0200
 clusSz:		db 0x04
 rsvdSecCnt:	dw 0x0004
@@ -61,6 +61,35 @@ getDataSec:
 	add ax, [rsvdSecCnt]
 	mov [dataSec], ax
 	ret
+
+;eax = string 1 position
+;ebx = string 2 position
+;cx  =  len
+;->
+;cf = equality
+cmpStr:
+	clc
+.loop:
+	mov cl, [eax]
+	cmp cl, [bx]
+	jne .noteq
+	inc ax
+	inc bx
+	dec cx	
+	jnz .loop
+.eq:
+	setc
+.noteq:
+	ret
+
+;name = target name
+;eax = offset
+;->
+;eax = dataCluster
+name: db '           '
+readDirEnt:
+.search:
+
 
 
 bootName: db 'BOOT       '
