@@ -86,7 +86,7 @@ cmpStr:
 ;ebx = offset
 ;ecx = endOffset
 ;->
-;ax = dataCluster
+;eax = entryOffset
 ;cf set if nonexistant
 readDirEnt:
 .search:
@@ -98,10 +98,7 @@ readDirEnt:
 	jle .search
 .notFound:
 	stc
-	ret
 .found:
-	add ebx, 26
-	mov ax, [ebx]
 	ret
 
 bootName: db 'BOOT       '
