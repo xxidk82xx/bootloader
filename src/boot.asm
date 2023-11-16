@@ -38,7 +38,6 @@ call readDisk
 
 call getDataSec
 mov ax, [dataSec]
-call prInt
 
 call readBoot
 
@@ -86,7 +85,7 @@ cmpStr:
 ;ebx = offset
 ;ecx = endOffset
 ;->
-;eax = entryOffset
+;ebx = entryOffset
 ;cf set if nonexistant
 readDirEnt:
 .search:
@@ -101,28 +100,30 @@ readDirEnt:
 .found:
 	ret
 
+;ebx = offset
+;->
+;cf set if dir
+isDir:
+	add ebx, 11
+	push ax
+	mov ax, 0x10
+	cmp al, [ebx]
+	stc
+	je .dir
+	pop ax
+.notDir:
+	clc
+.dir:
+	ret
+
 bootName: db 'BOOT       '
 readBoot:
-	mov ax, bootName
-	mov bx, 0x1020
-.loop:
-	mov cl, [eax]
-	cmp cl, [bx]
-	jne .notBoot
-	inc ax
-	inc bx
-	cmp ax, bootName + 11
-	jl .loop
-.printName:
-	mov bx, 0x1020
+	mov eax, bootName
+	mov ebx, 0x1000
+	call readDirEnt
 	mov cx, 11
 	call print
-.isDir:
-	mov bx, [0x102b]
-	xor eax, eax
-	mov ax, bx
-	cmp ax, 0x10
-	jne .notBoot
+	call isDir
 .findBin:
 	mov ax, [0x103a]
 	sub ax, 2
@@ -130,7 +131,6 @@ readBoot:
 	mov bl , [clusSz]
 	mul bx
 	add ax, [dataSec]
-	call prInt
 	ret
 
 .notBoot:
@@ -172,7 +172,7 @@ popa
 ;bx = text
 ;cx = len
 print:
-	push ax
+	pusha
 	mov ah, 0x0e
 .loop:
 	mov al, [bx]
@@ -180,7 +180,7 @@ print:
 	inc bx
 	dec cx
 	jnz .loop
-	pop ax
+	popa
     ret
 
 SPT: dW 63
