@@ -66,7 +66,7 @@ getDataSec:
 ;ebx = string 2 position
 ;cx  =  len
 ;->
-;cf = equality
+;cf set if equal
 cmpStr:
 	clc
 .loop:
@@ -78,19 +78,24 @@ cmpStr:
 	dec cx	
 	jnz .loop
 .eq:
-	setc
+	stc
 .noteq:
 	ret
 
-;name = target name
-;eax = offset
+;eax = target name
+;ebx = offset
 ;->
-;eax = dataCluster
-name: db '           '
+;ax = dataCluster
 readDirEnt:
 .search:
-
-
+	mov cx, 11
+	call cmpStr
+	jc .found
+	add ebx, 0x20
+	call .search
+.found:
+	add ebx, 26
+	mov ax, [ebx]
 
 bootName: db 'BOOT       '
 readBoot:
