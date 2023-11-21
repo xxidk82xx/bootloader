@@ -9,9 +9,9 @@ rootEntCnt:	dw 0x0200
 totalSec16:	dw 0x0800
 media:		db 0xf8
 FATSz16:	dw 0x0020
-secPerTrk:	dw 0x0020
-numHeads:	dw 0x0002
-hiddenSec:	dd 0x00000000
+secPerTrk:	dw 0x003f
+numHeads:	dw 0x00ff
+hiddenSec:	dd 0x00080000
 totalSec32:	dd 0x00000000
 ;fat12 specific
 driveNum:	db 0x80
@@ -34,13 +34,13 @@ mul word [FATSz16]
 mov [rootDir], ax
 add ax, 4
 mov bx, 0x1000
+mov cx, 1
 call readDisk
 
 call getDataSec
 mov ax, [dataSec]
 
 call readBoot
-
 jmp $
 
 fuck:
@@ -53,8 +53,6 @@ getDataSec:
 	mov ax, [rootEntCnt]
 	mov bx, 32
 	mul bx
-	;add ax, [secSz]
-	;dec ax
 	div word [secSz]
 	add ax, [rootDir]
 	add ax, [rsvdSecCnt]
@@ -68,9 +66,10 @@ getDataSec:
 ;cf set if equal
 cmpStr:
 	clc
+	pusha
 .loop:
-	mov cl, [eax]
-	cmp cl, [bx]
+	mov dl, [eax]
+	cmp dl, [ebx]
 	jne .noteq
 	inc ax
 	inc bx
@@ -79,59 +78,113 @@ cmpStr:
 .eq:
 	stc
 .noteq:
+	popa
 	ret
 
 ;eax = target name
 ;ebx = offset
-;ecx = endOffset
+;edx = endOffset
 ;->
 ;ebx = entryOffset
 ;cf set if nonexistant
-readDirEnt:
+findDirEnt:
+	clc
+	push cx
 .search:
 	mov cx, 11
 	call cmpStr
 	jc .found
 	add ebx, 0x20
-	cmp ebx, ecx 
-	jle .search
+	cmp ebx, edx 
+	jl .search
 .notFound:
 	stc
-.found:
+	pop cx
 	ret
-
+.found:
+	pop cx
+	ret
 ;ebx = offset
 ;->
 ;cf set if dir
 isDir:
-	add ebx, 11
 	push ax
+	push ebx
+	add ebx, 11
 	mov ax, 0x10
 	cmp al, [ebx]
-	stc
 	je .dir
-	pop ax
 .notDir:
+	pop ax
+	pop ebx
 	clc
+	ret
 .dir:
+	pop ax
+	pop ebx
+	stc
 	ret
 
-bootName: db 'BOOT       '
+call debp
+bootDName: db 'BOOT       '
+bootFName: db 'BOOT    BIN'
 readBoot:
-	mov eax, bootName
+	mov eax, bootDName
 	mov ebx, 0x1000
-	call readDirEnt
+	mov edx, 0x1200
+	call findDirEnt
 	mov cx, 11
 	call print
 	call isDir
+	jnc .notDir
 .findBin:
-	mov ax, [0x103a]
+	call readFile
+	mov eax, bootFName
+	mov ebx, 0x1000
+	mov edx, 0x1000
+	add edx, [clusSz]
+	call findDirEnt
+	mov cx, 11
+	call print
+	mov eax, ebx
+	call readFile
+	mov bx, 0x1000
+	mov cx, 0x200
+	call print
+	ret
+.notDir:
+	stc
+	call debp
+	ret
+
+;eax = entry location
+;->
+;0x1000 cluster location
+readFile:
+	pusha
+	add eax, 26
+	mov ax, [eax]
+	call clusToOffs
+	mov bx, 0x1000
+	mov cx, [clusSz]
+	call readDisk
+	popa
+	ret
+
+
+;ax = cluster
+;->
+;eax = sector
+clusToOffs:
+	push bx
 	sub ax, 2
 	xor bx, bx
-	mov bl , [clusSz]
+	mov bl ,[clusSz]
 	mul bx
 	add ax, [dataSec]
+	pop bx
 	ret
+
 
 .notBoot:
 	mov ah, 0x0e
@@ -207,13 +260,16 @@ toCHS:
 
 ;ax start sector
 ;es:bx position to read to
+;cx = sectors to read
 readDisk:
+	push cx
 	push bx
 	call toCHS
 	mov ch, al
 	mov dh, bl
 	mov al, cl
 	pop bx
+	pop ax
 .loop:
 	mov ah, 0x02
 	mov dl, 0x80
