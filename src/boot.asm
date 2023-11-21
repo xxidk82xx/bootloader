@@ -65,25 +65,31 @@ getDataSec:
 ;->
 ;cf set if equal
 cmpStr:
+	push ebx
+	push dx
 	clc
-	pusha
 .loop:
 	mov dl, [eax]
 	cmp dl, [ebx]
 	jne .noteq
-	inc ax
-	inc bx
+	inc eax
+	inc ebx
 	dec cx	
 	jnz .loop
 .eq:
 	stc
+	pop dx 
+	pop ebx
+	ret
 .noteq:
-	popa
+	pop dx
+	pop ebx
+	clc
 	ret
 
 ;eax = target name
 ;ebx = offset
-;edx = endOffset
+;edx = distance to search
 ;->
 ;ebx = entryOffset
 ;cf set if nonexistant
@@ -95,8 +101,8 @@ findDirEnt:
 	call cmpStr
 	jc .found
 	add ebx, 0x20
-	cmp ebx, edx 
-	jl .search
+	dec edx
+	jnz .search
 .notFound:
 	stc
 	pop cx
@@ -131,7 +137,7 @@ bootFName: db 'BOOT    BIN'
 readBoot:
 	mov eax, bootDName
 	mov ebx, 0x1000
-	mov edx, 0x1200
+	mov edx, 0x0200
 	call findDirEnt
 	mov cx, 11
 	call print
@@ -141,7 +147,6 @@ readBoot:
 	call readFile
 	mov eax, bootFName
 	mov ebx, 0x1000
-	mov edx, 0x1000
 	add edx, [clusSz]
 	call findDirEnt
 	mov cx, 11
@@ -149,12 +154,11 @@ readBoot:
 	mov eax, ebx
 	call readFile
 	mov bx, 0x1000
-	mov cx, 0x200
+	mov cx, 0x11
 	call print
 	ret
 .notDir:
 	stc
-	call debp
 	ret
 
 ;eax = entry location
@@ -163,6 +167,7 @@ readBoot:
 readFile:
 	pusha
 	add eax, 26
+.clusLoop:
 	mov ax, [eax]
 	call clusToOffs
 	mov bx, 0x1000
@@ -186,11 +191,11 @@ clusToOffs:
 	ret
 
 
-.notBoot:
-	mov ah, 0x0e
-	mov al, 'b'
-	int 0x10
-	jmp $
+;.notBoot:
+;	mov ah, 0x0e
+;	mov al, 'b'
+;	int 0x10
+;	jmp $
 
 
 prInt:
@@ -242,20 +247,18 @@ SPTXHPC: dw 1008
 
 ;ax sector
 ;to
-;ax cyl
-;bx head
-;cx sector
+;dh = head number
+;ch = cylinder number
+;cl = sectors to read
 toCHS:
-	push dx
 	xor dx, dx
 	div WORD [SPT] ;dx = sectors ax = cyl * hpc
 	inc dx
-	push dx
+	mov cl, dl
 	xor dx, dx
 	div word [HPC] ;ax = cyl dx = head
-	mov bx, dx
-	pop cx
-	pop dx
+	mov ch, al
+	mov dh, dl
 	ret
 
 ;ax start sector
@@ -263,24 +266,15 @@ toCHS:
 ;cx = sectors to read
 readDisk:
 	push cx
-	push bx
 	call toCHS
-	mov ch, al
-	mov dh, bl
-	mov al, cl
-	pop bx
 	pop ax
 .loop:
 	mov ah, 0x02
 	mov dl, 0x80
-	push ax
 	int 0x13
-	pop ax
 	jnc .succ
 
-	mov ah, 0x0e
-	mov al, 'E'
-	int 0x10
+	call debp
 
 	xor ah, ah
 	mov dl, [driveNum]

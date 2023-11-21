@@ -1,5 +1,5 @@
 SRC = $(shell find * -name '*.asm')
-BIN = src/boot.bin 
+BIN = src/boot.bin
 BOOT = boot.bin
 AS = nasm
 
