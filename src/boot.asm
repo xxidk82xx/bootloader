@@ -272,7 +272,6 @@ print:
 
 SPT: dW 63
 HPC: dW 16
-SPTXHPC: dw 1008
 
 ;ax sector
 ;to
