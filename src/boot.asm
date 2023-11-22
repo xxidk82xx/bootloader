@@ -20,6 +20,10 @@ bootSig:	db 0x29
 volID:		dd 0x2905a69d
 volLab:		db 'NO NAME    '
 FSType:		db 'FAT16   '
+
+FAT_LOCATION equ 0x200
+KERNEL_LOCATION equ 0x1000
+
 boot:
 [org 0x7c00]  
 mov [driveNum], dl
@@ -161,6 +165,34 @@ readBoot:
 	stc
 	ret
 
+;ebx = active cluster
+;FAT_LOCATION = fat location in memory (i know its a constant and i dont care)
+;dx = save location
+readFileFAT:
+	mov bx, dx
+.loop:
+	push bx
+	xor edx, edx
+	mul bx
+	add eax, FAT_LOCATION
+	mov ax, [eax]
+	cmp ax, 0xffff
+	je .eof
+	pop bx
+	call readClus
+	add bx, [clusSz]
+	jmp .loop
+.eof:
+	ret
+
+;eax = pointer to cluster
+readClus:
+	mov ax, [eax]
+	call clusToOffs
+	mov cx, [clusSz]
+	call readDisk
+	ret
+	
 ;eax = entry location
 ;->
 ;0x1000 cluster location
@@ -168,11 +200,8 @@ readFile:
 	pusha
 	add eax, 26
 .clusLoop:
-	mov ax, [eax]
-	call clusToOffs
 	mov bx, 0x1000
-	mov cx, [clusSz]
-	call readDisk
+	call readClus
 	popa
 	ret
 
@@ -198,26 +227,26 @@ clusToOffs:
 ;	jmp $
 
 
-prInt:
-	pusha
-	xor cx, cx
-	mov esi, 10
-.loop:
-	xor edx, edx
-	div esi
-	push edx
-	inc cx
-	cmp eax, 0
-	jne .loop
-.print:
-	pop eax
-	or al, 0x30
-	mov ah, 0x0e
-	int 0x10
-	dec cx
-	jnz .print
-	popa
-	ret
+;prInt:
+;	pusha
+;	xor cx, cx
+;	mov esi, 10
+;.loop:
+;	xor edx, edx
+;	div esi
+;	push edx
+;	inc cx
+;	cmp eax, 0
+;	jne .loop
+;.print:
+;	pop eax
+;	or al, 0x30
+;	mov ah, 0x0e
+;	int 0x10
+;	dec cx
+;	jnz .print
+;	popa
+;	ret
 
 debp:
 pusha
