@@ -117,23 +117,23 @@ findDirEnt:
 ;ebx = offset
 ;->
 ;cf set if dir
-isDir:
-	push ax
-	push ebx
-	add ebx, 11
-	mov ax, 0x10
-	cmp al, [ebx]
-	je .dir
-.notDir:
-	pop ax
-	pop ebx
-	clc
-	ret
-.dir:
-	pop ax
-	pop ebx
-	stc
-	ret
+;;isDir:
+;;	push ax
+;;	push ebx
+;;	add ebx, 11
+;;	mov ax, 0x10
+;;	cmp al, [ebx]
+;;	je .dir
+;;.notDir:
+;;	pop ax
+;;	pop ebx
+;;	clc
+;;	ret
+;;.dir:
+;;	pop ax
+;;	pop ebx
+;;	stc
+;;	ret
 
 call debp
 bootDName: db 'BOOT       '
@@ -145,8 +145,6 @@ readBoot:
 	call findDirEnt
 	mov cx, 11
 	call print
-	call isDir
-	jnc .notDir
 .findBin:
 	call readFile
 	mov eax, bootFName
@@ -160,9 +158,6 @@ readBoot:
 	mov bx, 0x1000
 	mov cx, 0x11
 	call print
-	ret
-.notDir:
-	stc
 	ret
 
 ;ebx = active cluster
