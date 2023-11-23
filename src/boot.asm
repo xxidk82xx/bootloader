@@ -114,26 +114,6 @@ findDirEnt:
 .found:
 	pop cx
 	ret
-;ebx = offset
-;->
-;cf set if dir
-;;isDir:
-;;	push ax
-;;	push ebx
-;;	add ebx, 11
-;;	mov ax, 0x10
-;;	cmp al, [ebx]
-;;	je .dir
-;;.notDir:
-;;	pop ax
-;;	pop ebx
-;;	clc
-;;	ret
-;;.dir:
-;;	pop ax
-;;	pop ebx
-;;	stc
-;;	ret
 
 call debp
 bootDName: db 'BOOT       '
