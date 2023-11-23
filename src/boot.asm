@@ -115,7 +115,6 @@ findDirEnt:
 	pop cx
 	ret
 
-call debp
 bootDName: db 'BOOT       '
 bootFName: db 'BOOT    BIN'
 readBoot:
@@ -126,6 +125,7 @@ readBoot:
 	mov cx, 11
 	call print
 .findBin:
+	mov eax, ebx
 	call readFile
 	mov eax, bootFName
 	mov ebx, 0x1000
@@ -139,8 +139,11 @@ readBoot:
 	mov cx, 0x11
 	call print
 	ret
+.notDir:
+	stc
+	ret
 
-;ebx = active cluster
+;eax = active cluster
 ;FAT_LOCATION = fat location in memory (i know its a constant and i dont care)
 ;dx = save location
 readFileFAT:
@@ -148,6 +151,7 @@ readFileFAT:
 .loop:
 	push bx
 	xor edx, edx
+	mov bx, 2
 	mul bx
 	add eax, FAT_LOCATION
 	mov ax, [eax]
