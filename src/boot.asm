@@ -46,27 +46,18 @@ mov bx, FAT_LOCATION
 mov cx, 1
 call readDisk
 
-call getDataSec
-mov ax, [dataSec]
+mov ax, [rootEntCnt]
+mov bx, 32
+mul bx
+div word [secSz]
+add ax, [rootDir]
+add ax, [rsvdSecCnt]
+mov [dataSec], ax
 
 call readBoot
 jmp $
 
-fuck:
-	call debp
-	hlt
-	jmp $
-
 dataSec: dw 0
-getDataSec:
-	mov ax, [rootEntCnt]
-	mov bx, 32
-	mul bx
-	div word [secSz]
-	add ax, [rootDir]
-	add ax, [rsvdSecCnt]
-	mov [dataSec], ax
-	ret
 
 ;eax = string 1 position
 ;ebx = string 2 position
@@ -197,14 +188,6 @@ clusToOffs:
 	add ax, [dataSec]
 	pop bx
 	ret
-
-
-;.notBoot:
-;	mov ah, 0x0e
-;	mov al, 'b'
-;	int 0x10
-;	jmp $
-
 
 prInt:
 	pusha
