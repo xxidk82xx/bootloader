@@ -6,11 +6,11 @@ clusSz:		db 0x04
 rsvdSecCnt:	dw 0x0004
 numFats:	db 0x02
 rootEntCnt:	dw 0x0200
-totalSec16:	dw 0x0800
+totalSec16:	dw 0x7cf8
 media:		db 0xf8
 FATSz16:	dw 0x0020
-secPerTrk:	dw 0x003f
-numHeads:	dw 0x00ff
+secPerTrk:	dw 0x003e
+numHeads:	dw 0x007c
 hiddenSec:	dd 0x00080000
 totalSec32:	dd 0x00000000
 ;fat12 specific
@@ -55,6 +55,7 @@ add ax, [rsvdSecCnt]
 mov [dataSec], ax
 
 call readBoot
+jmp KERNEL_LOCATION
 jmp $
 
 dataSec: dw 0
@@ -131,9 +132,6 @@ readBoot:
 	call print
 	mov eax, ebx
 	call readFile
-	mov bx, KERNEL_LOCATION
-	mov cx, 0x11
-	call print
 	ret
 
 ;ax = active cluster
