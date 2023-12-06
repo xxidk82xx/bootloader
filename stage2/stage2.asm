@@ -1,4 +1,4 @@
-[org 0x7c00]
+[org 0x1000]
 mov ah, 0x0e
 mov al, 'Q'
 int 0x10
@@ -7,12 +7,14 @@ jmp entry
 
 entry:
 mov ah, 0x0e
-mov al, 'E'
+mov al, 'Q'
 int 0x10
 mov cx, 8
 mov bx, te
 call print
+mov ax, 5000
 call prInt
 jmp $
 
 te: db 'testText'
+jmp $
