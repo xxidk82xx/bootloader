@@ -103,6 +103,7 @@ findDirEnt:
 	jc .found
 	add ebx, 0x20
 	dec edx
+	call debp
 	jnz .search
 .notFound:
 	stc

@@ -16,10 +16,12 @@ clean:
 	rm -rf $(BUILD)
 	
 run: all
-	dd if=$(BUILD)$(BOOT) of=/dev/sda
+	dd if=$(BUILD)$(BOOT) of=boot.img conv=notrunc
 	mkdir -p tmp/boot
 	cp $(BUILD)$(BIN2) tmp/boot/boot.bin
-	qemu-system-i386 -drive file=/dev/sda,format=raw,index=0,media=disk
+	sync
+	hexdump boot.img -C
+	qemu-system-i386 -drive file=boot.img,format=raw,index=0,media=disk
 
 %.bin:%.asm
 	mkdir -p $(BUILD)$(shell dirname $<)

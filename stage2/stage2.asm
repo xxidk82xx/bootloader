@@ -1,20 +1,20 @@
 [org 0x1000]
 mov ah, 0x0e
-mov al, 'Q'
+mov al, 'F'
 int 0x10
 jmp entry
 %include "include/io.asm"
 
 entry:
 mov ah, 0x0e
-mov al, 'Q'
+mov al, 'G'
 int 0x10
-mov cx, 8
+mov cx, 10
 mov bx, te
 call print
-mov ax, 5000
-call prInt
+mov eax, 0x1a9f
+call prHex
 jmp $
 
-te: db 'testText'
+te: db 'testTextAB'
 jmp $

@@ -33,3 +33,31 @@ prInt:
 	jnz .print
 	popa
 	ret
+
+;eax = number to print
+prHex:
+	pusha
+	xor cx, cx
+	mov esi, 16
+.loop:
+	xor edx, edx
+	div esi
+	push edx
+	inc cx
+	cmp eax, 0
+	jne .loop
+.print:
+	pop eax
+	cmp eax, 10
+	jl .B10
+	add al, 0x27
+.B10:
+	add al, 0x30
+	mov ah, 0x0e
+	int 0x10
+	dec cx
+	jnz .print
+	mov al, 'h'
+	int 0x10
+	popa
+	ret
