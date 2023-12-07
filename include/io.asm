@@ -61,3 +61,31 @@ prHex:
 	int 0x10
 	popa
 	ret
+
+;eax = string 1 position
+;ebx = string 2 position
+;cx  =  len
+;->
+;cf set if equal
+cmpStr:
+	push ebx
+	push dx
+	clc
+.loop:
+	mov dl, [eax]
+	cmp dl, [ebx]
+	jne .noteq
+	inc eax
+	inc ebx
+	dec cx	
+	jnz .loop
+.eq:
+	stc
+	pop dx 
+	pop ebx
+	ret
+.noteq:
+	pop dx
+	pop ebx
+	clc
+	ret
