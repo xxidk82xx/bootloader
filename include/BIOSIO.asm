@@ -1,6 +1,26 @@
+; bx = pointer to string
+printString:
+	pusha
+	mov ah, 0x0e
+.loop:
+	mov al, [bx]
+	int 0x10
+	inc bx
+	cmp [bx], byte 0x00
+	jne .loop
+	popa
+	ret
+
+;bx = pointer to string
+newLine: db 0xA, 0xD
+printLine:
+	call printString
+	mov bx, newLine
+	mov cx, 2
+	call print
 
 
-;[bx] = text
+;bx = pointer to text
 ;cx = len
 print:
 	pusha

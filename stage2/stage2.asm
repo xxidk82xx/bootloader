@@ -4,19 +4,15 @@ jmp entry
 %include "include/BIOSDisk.asm"
 
 entry:
-mov cx, 11
-mov bx, te
-call print
-mov eax, 0x1a9f
-call prHex
+mov bx, bootText
+call printLine
 
-mov ax, 0x7c00
-mov bx, 0x3000
-call readFAT
-mov eax, [0x7c00]
-call prHex
+mov bx, readBootText
+call readBoot
+call printLine
 
 jmp $
 
-te: db 'stage 2'
+bootText: db "   loaded stage two successfully", 0
+readBootText: db "copied fsinfo", 0
 jmp $

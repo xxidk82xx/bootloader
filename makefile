@@ -13,13 +13,18 @@ all: $(BIN1) $(BIN2)
 	
 
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD) tmp boot.img
 	
 run: all
+	truncate -s 16M boot.img
+	mkfs.fat -F 16 boot.img
 	dd if=$(BUILD)$(BOOT) of=boot.img conv=notrunc
+	mkdir -p tmp
+	mount boot.img tmp
 	mkdir -p tmp/boot
 	cp $(BUILD)$(BIN2) tmp/boot/boot.bin
 	sync
+	umount tmp
 	hexdump boot.img -C
 	qemu-system-i386 -drive file=boot.img,format=raw,index=0,media=disk
 
