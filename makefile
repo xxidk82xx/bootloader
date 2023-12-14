@@ -5,6 +5,7 @@ BIN2 = stage2/stage2.bin
 BUILD = build/
 BOOT = boot.bin
 AS = nasm
+IDK = a
 
 .PHONY: all
 
@@ -23,6 +24,9 @@ run: all
 	mount boot.img tmp
 	mkdir -p tmp/boot
 	cp $(BUILD)$(BIN2) tmp/boot/boot.bin
+	sync
+	echo "add files to tmp if you wish"
+	read $(IDK)
 	sync
 	umount tmp
 	hexdump boot.img -C
