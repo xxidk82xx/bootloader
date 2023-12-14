@@ -20,6 +20,9 @@ bootSig:	db 0x29
 volID:		dd 0x2905a69d
 volLab:		db 'NO NAME    '
 FSType:		db 'FAT16   '
+dataSec: dw 0
+SPT: dW 63
+HPC: dW 16
 
 FAT_LOCATION equ 0x800
 KERNEL_LOCATION equ 0x1000
@@ -58,7 +61,7 @@ call readBoot
 jmp KERNEL_LOCATION
 jmp $
 
-dataSec: dw 0
+
 
 ;eax = string 1 position
 ;ebx = string 2 position
@@ -231,8 +234,7 @@ print:
 	popa
     ret
 
-SPT: dW 63
-HPC: dW 16
+
 
 ;ax sector
 ;to

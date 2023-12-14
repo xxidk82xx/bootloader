@@ -1,7 +1,7 @@
 [org 0x1000]
 jmp entry
-%include "include/io.asm"
-%include "include/diskBIOS.asm"
+%include "include/BIOSIO.asm"
+%include "include/BIOSDisk.asm"
 
 entry:
 mov cx, 11
@@ -18,5 +18,5 @@ call prHex
 
 jmp $
 
-te: db 'hello world'
+te: db 'stage 2'
 jmp $

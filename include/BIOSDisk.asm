@@ -1,4 +1,29 @@
-fatLocation dd 0x0000
+fatLocation: dd 0x0000
+fsInfo:
+FSname:		db 'Bossman '
+secSz:		dw 0x0200
+clusSz:		db 0x04
+rsvdSecCnt:	dw 0x0004
+numFats:	db 0x02
+rootEntCnt:	dw 0x0200
+totalSec16:	dw 0x7cf8
+media:		db 0xf8
+FATSz16:	dw 0x0020
+secPerTrk:	dw 0x003e
+numHeads:	dw 0x007c
+hiddenSec:	dd 0x00080000
+totalSec32:	dd 0x00000000
+;fat12 specific
+driveNum:	db 0x80
+NTReserved:	db 0x00
+bootSig:	db 0x29
+volID:		dd 0x2905a69d
+volLab:		db 'NO NAME    '
+FSType:		db 'FAT16   '
+dataSec: dw 0
+SPT: dW 63
+HPC: dW 16
+infoEnd:
 
 ;eax = entry location
 ;ebx = storage location
@@ -104,4 +129,20 @@ toCHS:
 	mov ch, al
 	mov dh, dl
 	pop ax
+	ret
+
+readBoot:
+	pusha
+	mov cx, fsInfo - infoEnd
+	mov eax, fsInfo
+	mov ebx, 0x7c00
+.loop:
+	mov dx, [ebx]
+	mov [eax], dx
+	inc ax
+	inc bx
+	dec cx
+	jnz .end
+.end:
+	popa
 	ret
