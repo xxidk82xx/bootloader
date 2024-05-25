@@ -1,10 +1,10 @@
-SRC1 = $(shell find stage1/* -name '*.asm')
-SRC2 = $(shell find stage2/* -name '*.asm')
+SRC1 = $(shell find stage1/* -name '*.s')
+SRC2 = $(shell find stage2/* -name '*.s')
 BIN1 = stage1/boot.bin
 BIN2 = stage2/stage2.bin
 BUILD = build/
 BOOT = boot.bin
-AS = nasm
+AS = ~/opt/cross/bin/i686-elf-as
 IDK = a
 
 .PHONY: all
@@ -32,6 +32,6 @@ run: all
 	hexdump boot.img -C
 	qemu-system-i386 -drive file=boot.img,format=raw,index=0,media=disk
 
-%.bin:%.asm
+%.bin:%.s
 	mkdir -p $(BUILD)$(shell dirname $<)
 	$(AS) $< -o $(BUILD)$@
