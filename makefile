@@ -1,10 +1,11 @@
-SRC1 = $(shell find stage1/* -name '*.s')
-SRC2 = $(shell find stage2/* -name '*.s')
+SRC1 = $(shell find stage1/* -name '*.asm')
+SRC2 = $(shell find stage2/* -name '*.asm')
 BIN1 = stage1/boot.bin
 BIN2 = stage2/stage2.bin
 BUILD = build/
 BOOT = boot.bin
 AS = nasm
+IDK = a
 
 .PHONY: all
 
@@ -24,10 +25,13 @@ run: all
 	mkdir -p tmp/boot
 	cp $(BUILD)$(BIN2) tmp/boot/boot.bin
 	sync
+	echo "add files to tmp if you wish"
+	read $(IDK)
+	sync
 	umount tmp
 	hexdump boot.img -C
 	qemu-system-i386 -drive file=boot.img,format=raw,index=0,media=disk
 
-%.bin:%.s
+%.bin:%.asm
 	mkdir -p $(BUILD)$(shell dirname $<)
 	$(AS) $< -o $(BUILD)$@

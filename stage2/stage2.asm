@@ -7,12 +7,12 @@ entry:
 mov bx, bootText
 call printLine
 
-mov bx, readBootText
 call readBoot
+mov bx, readBootText
 call printLine
+call readFAT
 
 jmp $
 
 bootText: db "   loaded stage two successfully", 0
 readBootText: db "copied fsinfo", 0
-jmp $
