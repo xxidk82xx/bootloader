@@ -54,11 +54,16 @@ readFATClus:
 .eof:
 	ret
 
+;eax = boot record
 ;es:bx = location to store FAT
 readFAT:
 	pusha
-	mov cx, [FATSz16]
-	mov ax, [rsvdSecCnt]
+	add ax, 14
+	push ax
+	add ax, 8
+	mov cx, [eax]
+	pop ax
+	mov ax, [eax]
 	call readDisk
 	popa
 
