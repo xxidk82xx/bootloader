@@ -9,7 +9,7 @@ image = boot.img
 stage1 = $(BUILD)stage1/stage1.bin
 stage2 = $(BUILD)stage2/stage2.bin
 
-.PHONY: all
+.PHONY: all run
 
 all:
 	@$(MAKE) -C stage1
