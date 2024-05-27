@@ -104,7 +104,7 @@ clusToOffs:
 	xor bx, bx
 	mov bl ,[clusSz]
 	mul bx
-	add ax, [dataSec]
+	;add ax, [dataSec]
 	pop bx
 	ret
 
