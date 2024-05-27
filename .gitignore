@@ -1,3 +1,5 @@
 build/
 tmp/
 boot.img
+installer/Cargo.lock
+installer/target
